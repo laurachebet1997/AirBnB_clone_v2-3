@@ -51,22 +51,16 @@ class DBStorage:
                     new_dict[key] = obj
         return (new_dict)
 
-     def get(self, cls, id):
-         """
-         On the curret database session get an object of the given class.
-         Args:
-             cls (str): Name of object type. If None, no queries.
-             id (str): ID of object to query. If None, no queries.
-         Return:
-              The object based on the class name and its ID.
-         """
-         CLASS = classes[cls.__name__]
-         if CLASS is None:
-             return None
-         for value in self.all(CLASS).values():
-             if value.id == id:
-                 return value
-         return None
+    def get(self, cls, id):
+        """retrieves an object of a class with id"""
+        obj = None
+        if cls is not None and issubclass(cls, BaseModel):
+            obj = self.__session.query(cls).filter(cls.id == id).first()
+        return obj
+
+    def count(self, cls=None):
+        """retrieves the number of objects of a class or all (if cls==None)"""
+        return len(self.all(cls))
 
     def new(self, obj):
         """add the object to the current database session"""
@@ -91,17 +85,3 @@ class DBStorage:
     def close(self):
         """call remove() method on the private session attribute"""
         self.__session.remove()
-    def count(self, cls=None):
-        """
-        Returns the number of objects in storage according to the given class
-        name. If name is None returns the count of all objects in storage.
-        Args:
-            cls (str): The name of the class of None for all.
-        """
-    if cls is None:
-        return len(self.all())
-    else:
-        CLASS = classes[cls.__name__]
-        if CLASS is None:
-            return len(self.all())
-    return len(self.all(CLASS))
